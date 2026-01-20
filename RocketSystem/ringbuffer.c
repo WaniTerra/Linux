@@ -20,6 +20,7 @@ void add_val(Rocket *rocket, RingBuffer *rb)
         pthread_mutex_unlock(&mutex);
         return;
     }
+    printf("Added\n");
     rb->rocket_arr[rb->head] = *rocket;
 
     rb->head = next_head;

@@ -5,7 +5,7 @@ LIBS = -lpthread  # Thread kütüphanesini buraya ekledik
 
 # --- Hedefler ---
 
-all: panel rocket
+all: panel rocket 
 
 # Panel hedefi: Hem panel.c hem de ringbuffer.c'yi BİRLİKTE derler
 # Bağımlılıklar kısmına ringbuffer.c'yi de ekledik.

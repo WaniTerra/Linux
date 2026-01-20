@@ -68,7 +68,11 @@ int main()
             printf("Rocket crashed \n");
             break;
         }
-        usleep(50000);
+
+        pthread_mutex_lock(&mutex);
+        rb.tail = (rb.tail + 1) % 5; // Sanki read_val yapılmış gibi kuyruğu ilerlet
+        pthread_mutex_unlock(&mutex);
+        usleep(500000);
     }
 
     close(sockfd);

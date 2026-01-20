@@ -15,65 +15,65 @@ struct sockaddr_in server_addr, client_addr;
 int n;
 socklen_t len = sizeof(client_addr);
 
+// Mutex'i extern olarak buffer.h'dan alıyoruz ama burada tanımlamalıyız
+// Veya buffer.c içinde tanımlıysa burada tekrar init etmeliyiz.
+// En garantisi main içinde init etmektir.
+
 void server()
 {
-    // 1. Socket oluşturma (UDP için SOCK_DGRAM)
     if ((sockfd = socket(AF_INET, SOCK_DGRAM, 0)) < 0)
     {
         perror("Socket oluşturulamadı");
         exit(EXIT_FAILURE);
     }
 
-    // 2. Adres yapısını sıfırla ve doldur
     memset(&server_addr, 0, sizeof(server_addr));
     memset(&client_addr, 0, sizeof(client_addr));
 
     server_addr.sin_family = AF_INET;
-    server_addr.sin_addr.s_addr = INADDR_ANY; // Her yerden gelen veriyi kabul et
+    server_addr.sin_addr.s_addr = INADDR_ANY;
     server_addr.sin_port = htons(PORT);
 
-    // 3. Bind (Socketi porta bağla)
     if (bind(sockfd, (const struct sockaddr *)&server_addr, sizeof(server_addr)) < 0)
     {
         perror("Bind hatası");
         exit(EXIT_FAILURE);
     }
-
     printf("UDP Sunucu %d portunda dinliyor...\n", PORT);
 }
 
-pthread_t thread1;
-
 int main()
 {
-
     server();
-    // 4. Veri bekleme (recvfrom)
-    // Mesaj gelene kadar kod burada durur (block olur).
+    
+    // MUTEX BAŞLATMA EKLENDİ
+    pthread_mutex_init(&mutex, NULL);
 
-    Rocket temp_rocket = {0};
     RingBuffer rb;
     pthread_t thread2;
 
     while (1)
     {
+        // rb'nin içini temizleyelim ki eski veri kalmasın
+        // memset(&rb, 0, sizeof(rb)); // İsteğe bağlı, recvfrom zaten üzerine yazar.
 
         n = recvfrom(sockfd, &rb, sizeof(rb), 0,
                      (struct sockaddr *)&client_addr, &len);
-       
 
+        // Veriyi okuması için thread'i başlat
         pthread_create(&thread2, NULL, read_wrapper, &rb);
         pthread_join(thread2, NULL);
-
-        rb.rocket_arr[rb.tail] = temp_rocket;
-
-        if (temp_rocket.altitude == 0)
+    
+        int last_read_index = (rb.tail - 1 + 5) % 5;
+        
+        if (rb.rocket_arr[last_read_index].altitude <= 0 && rb.rocket_arr[last_read_index].speed > 0)
         {
-            printf("Rocket impact \n");
+            printf("Rocket impact detected!\n");
             break;
         }
     }
 
     close(sockfd);
+    pthread_mutex_destroy(&mutex); // Temizlik
     return 0;
 }
