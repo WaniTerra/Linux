@@ -30,23 +30,23 @@ void sort(int *arr, int size)
 int main()
 {
 
-    int dizi[] = {64, 25, 12, 22, 11, 1, 99, 34};
+    int arr[] = {64, 25, 12, 22, 11, 1, 99, 34};
 
-    int n = sizeof(dizi) / sizeof(dizi[0]);
+    int n = sizeof(arr) / sizeof(arr[0]);
 
     printf("Before: ");
     for (int i = 0; i < n; i++)
     {
-        printf("%d ", dizi[i]);
+        printf("%d ", arr[i]);
     }
     printf("\n");
 
-    selectionSort(dizi, n);
+    sort(arr, n);
 
     printf("Sorted:    ");
     for (int i = 0; i < n; i++)
     {
-        printf("%d ", dizi[i]);
+        printf("%d ", arr[i]);
     }
 
     return 0;
