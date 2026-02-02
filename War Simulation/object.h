@@ -6,6 +6,7 @@ typedef struct
 {
     float x, y, width, height, speed;
     SDL_Color color;
+    float results[4];
 } object;
 
 typedef struct

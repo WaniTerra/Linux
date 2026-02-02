@@ -7,4 +7,6 @@
 #include "main_menu.h"
 #include "object.h"
 
+extern float free_fall_results[];
+
 void free_fall(float drop_height, float friction_obj, float g, float m);
