@@ -1,12 +1,25 @@
 #include <stdint.h>
+#include <SDL2/SDL.h>
+#include <SDL2/SDL_ttf.h>
 
 typedef struct
 {
     float x, y, width, height, speed;
-    uint32_t color;
-} square;
+    SDL_Color color;
+} object;
+
+typedef struct
+{
+    float x, y;
+    const char *text;
+    TTF_Font *font;
+    SDL_Color color;
+} Label;
+
+extern object player;
+extern object menu;
+extern object menu_free_fall;
 
 
-extern square sq;
-
-void draw_square(int x, int y, int w, int h, uint32_t color);
+void draw_square(SDL_Renderer *renderer, const object obj);
+void draw_text(SDL_Renderer *renderer, Label lbl);
