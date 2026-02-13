@@ -7,8 +7,6 @@
 #include "main_menu.h"
 #include "object.h"
 
-
-
 bool experiment[] = {0, 0};
 bool exp_on_board = 0;
 
@@ -35,7 +33,6 @@ void menu_main()
 {
     SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
     SDL_RenderClear(renderer);
-    draw_square(renderer, player);
     draw_square(renderer, menu);
     draw_square(renderer, menu_free_fall);
     if (global_font)
@@ -53,6 +50,8 @@ void menu_main()
     SDL_RenderPresent(renderer);
 }
 
+
+
 void render()
 {
     menu_main();
@@ -68,30 +67,11 @@ void update(float dt)
         menu_free_fall.color = (SDL_Color){20, 20, 0, 100};
         experiment[0] = 1;
         exp_on_board = 1;
-    } else {
+    }
+    else
+    {
         menu_free_fall.color = (SDL_Color){255, 0, 0, 255};
     }
-
-    const Uint8 *keystate = SDL_GetKeyboardState(NULL);
-
-    if (keystate[SDL_SCANCODE_A])
-        player.x -= 5;
-    if (keystate[SDL_SCANCODE_D])
-        player.x += 5;
-    if (keystate[SDL_SCANCODE_W])
-        player.y -= 5;
-    if (keystate[SDL_SCANCODE_S])
-        player.y += 5;
-
-    if (player.x < 0)
-        player.x = 0;
-    if (player.x > WIDTH - player.width)
-        player.x = WIDTH - player.width;
-
-    if (player.y < 0)
-        player.y = 0;
-    if (player.y > HEIGHT - player.height)
-        player.y = HEIGHT - player.height;
 
     if (exp_on_board)
     {
@@ -99,11 +79,13 @@ void update(float dt)
         {
             if (experiment[i] == 1)
             {
-                if (i == 1)
+                if (i == 0)
                 {
-                    /* code */
+                    while (1)
+                    {
+                        screen_free_fall();
+                    }
                 }
-                
             }
         }
     }

@@ -5,8 +5,8 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include <math.h>
-#include "main_menu.h"
-#include "object.h"
+#include "../main_menu.h"
+#include "../object.h"
 
 void free_fall(object obj, float drop_height, float friction_obj, float g, float m, bool air, float friction_air, float k, float a)
 {

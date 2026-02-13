@@ -1,12 +1,12 @@
 CC = gcc
 # Kütüphane bayrakları (Linker flags) genellikle LDFLAGS veya LIBS olarak tanımlanır
-LDFLAGS = -lSDL2 -lSDL2_ttf
+LDFLAGS = -lSDL2 -lSDL2_ttf -lm
 
 # Çıktı dosyasının adı
 TARGET = sim
 
 # Derlenecek dosyalar
-SRCS = main.c main_menu.c object.c
+SRCS = main.c main_menu.c object.c ./Experiments/experiments.c
 
 all: $(TARGET) run
 
