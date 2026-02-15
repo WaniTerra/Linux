@@ -1,7 +1,6 @@
 #include "main_menu.h"
 
 
-
 int main()
 {
     start();

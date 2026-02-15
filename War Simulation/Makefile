@@ -1,20 +1,34 @@
 CC = gcc
-# Kütüphane bayrakları (Linker flags) genellikle LDFLAGS veya LIBS olarak tanımlanır
+
+# Include yollarını buraya ekliyoruz (-I.)
+# Derleyiciye hangi klasörlerin içine bakması gerektiğini söylüyoruz
+CFLAGS = -I. -I./Screens -I./Experiments -Wall
+
+# Kütüphane bayrakları
 LDFLAGS = -lSDL2 -lSDL2_ttf -lm
 
 # Çıktı dosyasının adı
 TARGET = sim
 
 # Derlenecek dosyalar
-SRCS = main.c main_menu.c object.c ./Experiments/experiments.c
+SRCS = main.c main_menu.c object.c ./Experiments/experiments.c ./Screens/screen_free_fall.c
 
-all: $(TARGET) run
+# Nesne dosyaları (.c dosyalarından .o dosyaları oluşturulacak)
+OBJS = $(SRCS:.c=.o)
+
+all: $(TARGET)
+
+$(TARGET): $(OBJS)
+	$(CC) $(OBJS) -o $(TARGET) $(LDFLAGS)
+
+# Her bir .c dosyasını .o dosyasına dönüştüren kural
+%.o: %.c
+	$(CC) $(CFLAGS) -c $< -o $@
 
 run: all
 	./$(TARGET)
 
-$(TARGET): $(SRCS)
-	$(CC) $(SRCS) -o $(TARGET) $(LDFLAGS)
-
 clean:
-	rm -f $(TARGET)
+	rm -f $(TARGET) $(OBJS)
+
+.PHONY: all clean run

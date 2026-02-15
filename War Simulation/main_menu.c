@@ -5,6 +5,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include "main_menu.h"
+#include "screen_free_fall.h"
 #include "object.h"
 
 bool experiment[] = {0, 0};
@@ -15,14 +16,15 @@ uint32_t *buffer;
 SDL_Texture *texture;
 SDL_Renderer *renderer;
 SDL_Window *window;
-object player;
-object menu;
-object menu_free_fall;
+bool is_running = true;
+
+Button menu;
+Button menu_free_fall;
 
 TTF_Font *global_font = NULL;
 TTF_Font *menu_font = NULL;
 
-bool is_clicked(int mx, int my, object obj)
+bool is_clicked(int mx, int my, Button obj)
 {
     return (mx >= obj.x &&
             mx <= obj.x + obj.width &&
@@ -33,8 +35,8 @@ void menu_main()
 {
     SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
     SDL_RenderClear(renderer);
-    draw_square(renderer, menu);
-    draw_square(renderer, menu_free_fall);
+    draw_square_button(renderer, menu);
+    draw_square_button(renderer, menu_free_fall);
     if (global_font)
     {
         Label menu_label = {WIDTH - (WIDTH / 1.75), 35.0f, "MENU", global_font, {255, 255, 255, 255}};
@@ -49,9 +51,6 @@ void menu_main()
 
     SDL_RenderPresent(renderer);
 }
-
-
-
 void render()
 {
     menu_main();
@@ -83,7 +82,11 @@ void update(float dt)
                 {
                     while (1)
                     {
-                        screen_free_fall();
+                        if (screen_free_fall() == 1)
+                        {
+                            is_running = false;
+                            break;
+                        }
                     }
                 }
             }
@@ -96,11 +99,6 @@ void update(float dt)
 }
 void setup()
 {
-    player.x = 100;
-    player.y = 100;
-    player.height = 20;
-    player.width = 20;
-    player.color = (SDL_Color){255, 0, 0, 255};
 
     menu.x = 0;
     menu.y = 300;
@@ -137,7 +135,6 @@ void start()
     TTF_Init();
     setup();
 
-    bool is_running = true;
     SDL_Event event;
     while (is_running)
     {
