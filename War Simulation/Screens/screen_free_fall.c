@@ -14,19 +14,19 @@ Button surface;
 
 object_free_fall *objs = NULL;
 int objs_num = 0;
-int objs_capacity = 4;
+int objs_capacity = 6;
+bool setup_st = false;
 
-void create_object_temp(int *mx, int *my)
+object_free_fall create_object_temp(int *mx, int *my)
 {
     if (objs == NULL)
     {
         objs = malloc(sizeof(object_free_fall) * objs_capacity);
     }
-    
+
     if (objs_num == objs_capacity)
     {
         objs_capacity *= 2;
-
         object_free_fall *temp = realloc(objs, sizeof(object_free_fall) * objs_capacity);
 
         if (temp == NULL)
@@ -39,24 +39,30 @@ void create_object_temp(int *mx, int *my)
         }
     }
 
-    srand(time(NULL));
+    srand(SDL_GetTicks());
     object_free_fall temp;
     temp.x = *mx;
     temp.y = *my;
 
-    int color[objs_num + 1];
-    for (int i = 0; i < objs_num + 1; i++)
+    int color[3];
+    for (int i = 0; i < 3; i++)
     {
         int num = rand() % 255 + 1;
         color[i] = num;
     }
 
-    temp.color = (SDL_Color){color[0], color[1], color[2], 120};
+    temp.color = (SDL_Color){color[0], color[1], color[2], 100};
     temp.height = 100;
     temp.width = 100;
     temp.speed = 0;
     temp.active = true;
 
+    return temp;
+}
+
+void create_object(int *mx, int *my)
+{
+    object_free_fall temp = create_object_temp(mx, my);
     objs[objs_num] = temp;
     objs_num++;
 }
@@ -66,8 +72,8 @@ void setup_free_fall()
 
     if (objs == NULL)
     {
-        objs_capacity = 4;
-        objs = malloc(sizeof(object_free_fall) * 4);
+        objs_capacity = 6;
+        objs = malloc(sizeof(object_free_fall) * 6);
     }
 
     btn_start = (Button){.x = 1400, .y = 750, .height = 80, .width = 120, .color = (SDL_Color){255, 0, 0, 255}};
@@ -95,31 +101,53 @@ int screen_free_fall()
 {
 
     SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
+    SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND);
     SDL_RenderClear(renderer);
 
     int mx, my;
     uint32_t buttons = SDL_GetMouseState(&mx, &my);
-    setup_free_fall();
+    if (setup_st == false)
+        setup_free_fall();
 
+    setup_st = false;
+    bool mouse_down = false;
     SDL_Event event;
+
     while (SDL_PollEvent(&event))
     {
+        SDL_GetMouseState(&mx, &my);
         if (event.type == SDL_QUIT)
         {
-            free(objs);
+            free(objs); 
             return 1;
+        }
+
+        if (event.type == SDL_MOUSEMOTION && mouse_down)
+        {
+            objs[objs_num - 1].x = event.motion.x;
+            objs[objs_num - 1].y = event.motion.y;
         }
 
         if (event.type == SDL_MOUSEBUTTONDOWN)
         {
+            if (event.button.button == SDL_BUTTON_LEFT && is_clicked(mx, my, menu))
+            {
+                mouse_down = true;
+                draw_square_object_ff(renderer, objs[objs_num - 1]);
+            }
+        }
+
+        if (event.type == SDL_MOUSEBUTTONUP)
+        {
             if (event.button.button == SDL_BUTTON_LEFT)
             {
-                create_object_temp(&mx, &my);
+                create_object(&mx, &my);
+                mouse_down = false;
             }
         }
     }
 
-    for (int i = 0; i < 4; i++)
+    for (int i = 0; i < objs_num; i++)
     {
         if (!objs[i].active)
         {
@@ -128,7 +156,6 @@ int screen_free_fall()
 
         draw_square_object_ff(renderer, objs[i]);
     }
-
     if (is_clicked(mx, my, btn_start) && (buttons & SDL_BUTTON_LMASK))
     {
         btn_start.color = (SDL_Color){100, 0, 0, 255};

@@ -28,3 +28,4 @@ void start(void);
 void render(void);
 void update(float dt);
 void setup(void);
+bool is_clicked(int mx, int my, Button obj);
