@@ -13,8 +13,16 @@ Button btn_start;
 Button surface;
 
 object_free_fall *objs = NULL;
+object_free_fall *obj_move_arr = NULL;
+object_free_fall obj_temp;
 int objs_num = 0;
 int objs_capacity = 6;
+
+int obj_move_num = 0;
+int obj_move_capacity = 6;
+
+bool mouse_down = false;
+
 bool setup_st = false;
 
 object_free_fall create_object_temp(int *mx, int *my)
@@ -67,6 +75,13 @@ void create_object(int *mx, int *my)
     objs_num++;
 }
 
+void create_object_move(int *mx, int *my)
+{
+    object_free_fall temp = create_object_temp(mx, my);
+    obj_move_arr[obj_move_num] = temp;
+    obj_move_num++;
+}
+
 void setup_free_fall()
 {
 
@@ -74,6 +89,11 @@ void setup_free_fall()
     {
         objs_capacity = 6;
         objs = malloc(sizeof(object_free_fall) * 6);
+    }
+    if (obj_move_arr == NULL)
+    {
+        obj_move_capacity = 6;
+        obj_move_arr = malloc(sizeof(object_free_fall) * 6);
     }
 
     btn_start = (Button){.x = 1400, .y = 750, .height = 80, .width = 120, .color = (SDL_Color){255, 0, 0, 255}};
@@ -110,38 +130,72 @@ int screen_free_fall()
         setup_free_fall();
 
     setup_st = false;
-    bool mouse_down = false;
     SDL_Event event;
+
+    if (obj_move_num == obj_move_capacity)
+    {
+        obj_move_capacity *= 2;
+        object_free_fall *temp = realloc(obj_move_arr, sizeof(object_free_fall) * obj_move_capacity);
+
+        if (temp == NULL)
+        {
+            fprintf(stderr, "No space!\n");
+        }
+        else
+        {
+            obj_move_arr = temp;
+        }
+    }
+    else if (obj_move_arr == NULL)
+    {
+        obj_move_capacity = 6;
+        obj_move_arr = malloc(sizeof(object_free_fall) * 6);
+    }
 
     while (SDL_PollEvent(&event))
     {
         SDL_GetMouseState(&mx, &my);
         if (event.type == SDL_QUIT)
         {
-            free(objs); 
+            free(objs);
+            free(obj_move_arr);
             return 1;
-        }
-
-        if (event.type == SDL_MOUSEMOTION && mouse_down)
-        {
-            objs[objs_num - 1].x = event.motion.x;
-            objs[objs_num - 1].y = event.motion.y;
         }
 
         if (event.type == SDL_MOUSEBUTTONDOWN)
         {
-            if (event.button.button == SDL_BUTTON_LEFT && is_clicked(mx, my, menu))
+            if (event.button.button == SDL_BUTTON_LEFT)
             {
                 mouse_down = true;
-                draw_square_object_ff(renderer, objs[objs_num - 1]);
+                obj_temp = create_object_temp(&mx, &my);
+                draw_square_object_ff(renderer, obj_temp);
             }
         }
+        if (event.type == SDL_MOUSEMOTION && mouse_down)
+        {
 
-        if (event.type == SDL_MOUSEBUTTONUP)
+            obj_temp.x = event.motion.x;
+            obj_temp.y = event.motion.y;
+            usleep(1000000);
+            create_object_move(&event.motion.x, &event.motion.y);
+        }
+        else if (event.type == SDL_MOUSEBUTTONUP)
         {
             if (event.button.button == SDL_BUTTON_LEFT)
             {
                 create_object(&mx, &my);
+
+                for (int i = 0; i < obj_move_num; i++)
+                {
+                    if (!obj_move_arr[i].active)
+                    {
+                        continue;
+                    }
+                    obj_move_arr[i].color = menu.color;
+                    draw_square_object_ff(renderer, obj_move_arr[i]);
+                }
+
+                obj_move_num = 0;
                 mouse_down = false;
             }
         }
@@ -156,6 +210,17 @@ int screen_free_fall()
 
         draw_square_object_ff(renderer, objs[i]);
     }
+
+    for (int i = 0; i < obj_move_num; i++)
+    {
+        if (!obj_move_arr[i].active)
+        {
+            continue;
+        }
+
+        draw_square_object_ff(renderer, obj_move_arr[i]);
+    }
+
     if (is_clicked(mx, my, btn_start) && (buttons & SDL_BUTTON_LMASK))
     {
         btn_start.color = (SDL_Color){100, 0, 0, 255};

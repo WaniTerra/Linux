@@ -32,6 +32,7 @@ void draw_square_object_ff(SDL_Renderer *renderer, const object_free_fall obj)
     SDL_RenderFillRect(renderer, &rect);
 }
 
+
 void draw_text(SDL_Renderer *renderer, Label lbl)
 {
     SDL_Surface *surface = TTF_RenderText_Solid(lbl.font, lbl.text, lbl.color);

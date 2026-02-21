@@ -32,6 +32,7 @@ extern Button menu_free_fall;
 
 void draw_square_button(SDL_Renderer *renderer, const Button obj);
 void draw_square_object_ff(SDL_Renderer *renderer, const object_free_fall obj);
+
 void draw_text(SDL_Renderer *renderer, Label lbl);
 
 #endif
