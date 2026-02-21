@@ -176,7 +176,6 @@ int screen_free_fall()
 
             obj_temp.x = event.motion.x;
             obj_temp.y = event.motion.y;
-            usleep(1000000);
             create_object_move(&event.motion.x, &event.motion.y);
         }
         else if (event.type == SDL_MOUSEBUTTONUP)
