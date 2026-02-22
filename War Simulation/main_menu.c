@@ -31,6 +31,14 @@ bool is_clicked(int mx, int my, Button obj)
             my >= obj.y &&
             my <= obj.y + obj.height);
 }
+bool is_clicked_(int mx, int my, Button obj)
+{
+    return (mx >= obj.x &&
+            mx <= obj.x + obj.width &&
+            my >= obj.y &&
+            my <= obj.y + obj.height);
+}
+
 void menu_main()
 {
     SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);

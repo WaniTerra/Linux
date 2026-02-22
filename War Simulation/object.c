@@ -32,7 +32,6 @@ void draw_square_object_ff(SDL_Renderer *renderer, const object_free_fall obj)
     SDL_RenderFillRect(renderer, &rect);
 }
 
-
 void draw_text(SDL_Renderer *renderer, Label lbl)
 {
     SDL_Surface *surface = TTF_RenderText_Solid(lbl.font, lbl.text, lbl.color);
@@ -45,4 +44,18 @@ void draw_text(SDL_Renderer *renderer, Label lbl)
 
     SDL_FreeSurface(surface);
     SDL_DestroyTexture(texture);
+}
+
+object_free_fall *find_ff(int mx, int my, object_free_fall *obj)
+{
+
+    if (mx >= obj->x &&
+        mx <= obj->x + obj->width &&
+        my >= obj->y &&
+        my <= obj->y + obj->height)
+    {
+        return obj;
+    }
+
+    return NULL;
 }

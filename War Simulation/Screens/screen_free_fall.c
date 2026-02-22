@@ -15,17 +15,21 @@ Button surface;
 object_free_fall *objs = NULL;
 object_free_fall *obj_move_arr = NULL;
 object_free_fall obj_temp;
+object_free_fall *ff_clicked = NULL;
+
 int objs_num = 0;
 int objs_capacity = 6;
 
 int obj_move_num = 0;
 int obj_move_capacity = 6;
 
+bool temp_draw = false;
 bool mouse_down = false;
-
+bool clicked = false;
 bool setup_st = false;
+bool border_crossed = false;
 
-object_free_fall create_object_temp(int *mx, int *my)
+object_free_fall create_object_temp(int *mx, int *my, int height, int width)
 {
     if (objs == NULL)
     {
@@ -49,8 +53,8 @@ object_free_fall create_object_temp(int *mx, int *my)
 
     srand(SDL_GetTicks());
     object_free_fall temp;
-    temp.x = *mx;
-    temp.y = *my;
+    temp.x = *mx - (OBJ_FF_WIDTH / 2.0f);
+    temp.y = *my - (OBJ_FF_HEIGHT / 2.0f);
 
     int color[3];
     for (int i = 0; i < 3; i++)
@@ -60,24 +64,59 @@ object_free_fall create_object_temp(int *mx, int *my)
     }
 
     temp.color = (SDL_Color){color[0], color[1], color[2], 100};
-    temp.height = 100;
-    temp.width = 100;
+    temp.height = height;
+    temp.width = width;
     temp.speed = 0;
     temp.active = true;
 
     return temp;
 }
 
+bool is_clicked_objs(int mx, int my, object_free_fall obj)
+{
+    return (mx >= obj.x &&
+            mx <= obj.x + obj.width &&
+            my >= obj.y &&
+            my <= obj.y + obj.height);
+}
+
+bool is_clicked_menu(int mx, int my, Button obj)
+{
+    return (mx >= obj.x + OBJ_FF_WIDTH / 2 &&
+            mx <= obj.x + obj.width - OBJ_FF_WIDTH / 2 &&
+            my >= obj.y + OBJ_FF_HEIGHT / 2 &&
+            my <= obj.y + obj.height - OBJ_FF_HEIGHT / 2);
+}
 void create_object(int *mx, int *my)
 {
-    object_free_fall temp = create_object_temp(mx, my);
+    object_free_fall temp = create_object_temp(mx, my, 50, 50);
     objs[objs_num] = temp;
     objs_num++;
 }
 
 void create_object_move(int *mx, int *my)
 {
-    object_free_fall temp = create_object_temp(mx, my);
+    if (obj_move_num == obj_move_capacity)
+    {
+        obj_move_capacity *= 2;
+        object_free_fall *temp = realloc(obj_move_arr, sizeof(object_free_fall) * obj_move_capacity);
+
+        if (temp == NULL)
+        {
+            fprintf(stderr, "No space!\n");
+        }
+        else
+        {
+            obj_move_arr = temp;
+        }
+    }
+    else if (obj_move_arr == NULL)
+    {
+        obj_move_capacity = 6;
+        obj_move_arr = malloc(sizeof(object_free_fall) * 6);
+    }
+
+    object_free_fall temp = create_object_temp(mx, my, 5, 5);
     obj_move_arr[obj_move_num] = temp;
     obj_move_num++;
 }
@@ -126,34 +165,12 @@ int screen_free_fall()
 
     int mx, my;
     uint32_t buttons = SDL_GetMouseState(&mx, &my);
-    if (setup_st == false)
-        setup_free_fall();
-
-    setup_st = false;
+    setup_free_fall();
     SDL_Event event;
-
-    if (obj_move_num == obj_move_capacity)
-    {
-        obj_move_capacity *= 2;
-        object_free_fall *temp = realloc(obj_move_arr, sizeof(object_free_fall) * obj_move_capacity);
-
-        if (temp == NULL)
-        {
-            fprintf(stderr, "No space!\n");
-        }
-        else
-        {
-            obj_move_arr = temp;
-        }
-    }
-    else if (obj_move_arr == NULL)
-    {
-        obj_move_capacity = 6;
-        obj_move_arr = malloc(sizeof(object_free_fall) * 6);
-    }
 
     while (SDL_PollEvent(&event))
     {
+
         SDL_GetMouseState(&mx, &my);
         if (event.type == SDL_QUIT)
         {
@@ -161,41 +178,92 @@ int screen_free_fall()
             free(obj_move_arr);
             return 1;
         }
-
-        if (event.type == SDL_MOUSEBUTTONDOWN)
+        if (is_clicked_menu(mx, my, menu))
         {
-            if (event.button.button == SDL_BUTTON_LEFT)
+            if (event.type == SDL_MOUSEBUTTONDOWN)
             {
-                mouse_down = true;
-                obj_temp = create_object_temp(&mx, &my);
-                draw_square_object_ff(renderer, obj_temp);
-            }
-        }
-        if (event.type == SDL_MOUSEMOTION && mouse_down)
-        {
-
-            obj_temp.x = event.motion.x;
-            obj_temp.y = event.motion.y;
-            create_object_move(&event.motion.x, &event.motion.y);
-        }
-        else if (event.type == SDL_MOUSEBUTTONUP)
-        {
-            if (event.button.button == SDL_BUTTON_LEFT)
-            {
-                create_object(&mx, &my);
-
-                for (int i = 0; i < obj_move_num; i++)
+                if (clicked == false)
                 {
-                    if (!obj_move_arr[i].active)
+                    for (int i = 0; i < objs_num; i++)
                     {
-                        continue;
+                        clicked = is_clicked_objs(mx, my, objs[i]);
+                        if (clicked)
+                        {
+                            break;
+                        }
                     }
-                    obj_move_arr[i].color = menu.color;
-                    draw_square_object_ff(renderer, obj_move_arr[i]);
                 }
 
-                obj_move_num = 0;
-                mouse_down = false;
+                if (event.button.button == SDL_BUTTON_LEFT && !clicked)
+                {
+                    obj_temp = create_object_temp(&mx, &my, 50, 50);
+                    mouse_down = true;
+                    temp_draw = true;
+                }
+                else if (event.button.button == SDL_BUTTON_LEFT && clicked)
+                {
+                    for (int i = 0; i < objs_num; i++)
+                    {
+                        ff_clicked = find_ff(mx, my, objs + i);
+                        if (ff_clicked == NULL)
+                        {
+                            continue;
+                        }
+
+                        (*ff_clicked).color.a = 180;
+                        break;
+                    }
+                }
+            }
+        }
+
+        if (event.type == SDL_MOUSEMOTION && mouse_down)
+        {
+            create_object_move(&event.motion.x, &event.motion.y);
+            if (is_clicked_menu(!event.motion.x, event.motion.y, menu))
+                border_crossed = true;
+
+            border_crossed = false;
+        }
+        if (is_clicked_menu(mx, my, menu))
+        {
+            if (event.type == SDL_MOUSEBUTTONUP && setup_st)
+            {
+                if (event.button.button == SDL_BUTTON_LEFT && !clicked)
+                {
+                    create_object(&mx, &my);
+                    objs[objs_num - 1].color = obj_temp.color;
+                    objs[objs_num - 1].color.a = 255;
+
+                    for (int i = 0; i < obj_move_num; i++)
+                    {
+                        if (!obj_move_arr[i].active)
+                        {
+                            continue;
+                        }
+                        obj_move_arr[i].color = menu.color;
+                        draw_square_object_ff(renderer, obj_move_arr[i]);
+                        temp_draw = false;
+                    }
+
+                    obj_move_num = 0;
+                    mouse_down = false;
+                }
+                if (event.button.button == SDL_BUTTON_LEFT && clicked)
+                {
+                    if (!border_crossed)
+                    {
+                        (*ff_clicked).x = mx - ((*ff_clicked).width / 2.0f);
+                        (*ff_clicked).y = my - ((*ff_clicked).height / 2.0f);
+                    }
+                    else
+                    {
+                        printf("burdayiz");
+                    }
+
+                    (*ff_clicked).color.a = 255;
+                }
+                clicked = false;
             }
         }
     }
@@ -216,9 +284,11 @@ int screen_free_fall()
         {
             continue;
         }
-
         draw_square_object_ff(renderer, obj_move_arr[i]);
     }
+
+    if (temp_draw)
+        draw_square_object_ff(renderer, obj_temp);
 
     if (is_clicked(mx, my, btn_start) && (buttons & SDL_BUTTON_LMASK))
     {
@@ -228,6 +298,7 @@ int screen_free_fall()
     {
     }
 
+    setup_st = true;
     SDL_RenderPresent(renderer);
     return 0;
 }
