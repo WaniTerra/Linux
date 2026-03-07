@@ -8,6 +8,7 @@
 #include "screen_free_fall.h"
 #include "main_menu.h"
 #include "object.h"
+#include "experiments.h"
 
 Button btn_start;
 Button surface;
@@ -28,6 +29,9 @@ bool mouse_down = false;
 bool clicked = false;
 bool setup_st = false;
 bool border_crossed = false;
+
+Label menu_label;
+Label start_label;
 
 object_free_fall create_object_temp(int *mx, int *my, int height, int width)
 {
@@ -53,8 +57,12 @@ object_free_fall create_object_temp(int *mx, int *my, int height, int width)
 
     srand(SDL_GetTicks());
     object_free_fall temp;
-    temp.x = *mx - (OBJ_FF_WIDTH / 2.0f);
-    temp.y = *my - (OBJ_FF_HEIGHT / 2.0f);
+
+    temp.width = width;
+    temp.height = height;
+
+    temp.x = (float)*mx - (width / 2.0f);
+    temp.y = (float)*my - (height / 2.0f);
 
     int color[3];
     for (int i = 0; i < 3; i++)
@@ -117,6 +125,7 @@ void create_object_move(int *mx, int *my)
     }
 
     object_free_fall temp = create_object_temp(mx, my, 5, 5);
+
     obj_move_arr[obj_move_num] = temp;
     obj_move_num++;
 }
@@ -135,6 +144,14 @@ void setup_free_fall()
         obj_move_arr = malloc(sizeof(object_free_fall) * 6);
     }
 
+    draw_square_button(renderer, btn_start);
+    draw_square_button(renderer, menu);
+    draw_square_button(renderer, surface);
+    draw_text(renderer, menu_label);
+    draw_text(renderer, start_label);
+}
+void setup_objects()
+{
     btn_start = (Button){.x = 1400, .y = 750, .height = 80, .width = 120, .color = (SDL_Color){255, 0, 0, 255}};
     menu.y = 200;
     menu.height = 700;
@@ -144,18 +161,17 @@ void setup_free_fall()
 
     if (menu_font)
     {
-        Label menu_label = {WIDTH - (WIDTH / 1.65), 35.0f, "Free Fall", global_font, {255, 255, 255, 255}};
-        draw_text(renderer, menu_label);
+        menu_label = (Label) {WIDTH - (WIDTH / 1.65), 35.0f, "Free Fall", global_font, {255, 255, 255, 255}};
 
-        Label start_label = {1430, 780, "Start", menu_font, {255, 255, 255, 255}};
-        draw_text(renderer, start_label);
+        int text_w, text_h;
+        TTF_SizeText(menu_font, "Start", &text_w, &text_h);
+
+        int centered_x = btn_start.x + (btn_start.width / 2) - (text_w / 2);
+        int centered_y = btn_start.y + (btn_start.height / 2) - (text_h / 2);
+
+        start_label =(Label) {centered_x, centered_y, "Start", menu_font, {255, 255, 255, 255}};
     }
-
-    draw_square_button(renderer, btn_start);
-    draw_square_button(renderer, menu);
-    draw_square_button(renderer, surface);
 }
-
 int screen_free_fall()
 {
 
@@ -165,8 +181,14 @@ int screen_free_fall()
 
     int mx, my;
     uint32_t buttons = SDL_GetMouseState(&mx, &my);
-    setup_free_fall();
     SDL_Event event;
+
+    if (!setup_st)
+    {
+        setup_objects();
+        SDL_Delay(100);
+    }
+    setup_free_fall();
 
     while (SDL_PollEvent(&event))
     {
@@ -219,11 +241,17 @@ int screen_free_fall()
 
         if (event.type == SDL_MOUSEMOTION && mouse_down)
         {
-            create_object_move(&event.motion.x, &event.motion.y);
-            if (is_clicked_menu(!event.motion.x, event.motion.y, menu))
-                border_crossed = true;
 
-            border_crossed = false;
+            create_object_move(&event.motion.x, &event.motion.y);
+
+            if (is_clicked_menu(!event.motion.x, event.motion.y, menu))
+            {
+                border_crossed = true;
+            }
+            else
+            {
+                border_crossed = false;
+            }
         }
         if (is_clicked_menu(mx, my, menu))
         {
@@ -255,10 +283,6 @@ int screen_free_fall()
                     {
                         (*ff_clicked).x = mx - ((*ff_clicked).width / 2.0f);
                         (*ff_clicked).y = my - ((*ff_clicked).height / 2.0f);
-                    }
-                    else
-                    {
-                        printf("burdayiz");
                     }
 
                     (*ff_clicked).color.a = 255;
@@ -293,6 +317,12 @@ int screen_free_fall()
     if (is_clicked(mx, my, btn_start) && (buttons & SDL_BUTTON_LMASK))
     {
         btn_start.color = (SDL_Color){100, 0, 0, 255};
+        for (int i = 0; i < objs_num; i++)
+        {
+            free_fall((objs + i),(objs + i).y - surface.y, 1, 10, 10, false, 1, 1,1);
+            
+        }
+        
     }
     else
     {

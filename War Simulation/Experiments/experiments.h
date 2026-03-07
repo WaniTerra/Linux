@@ -9,4 +9,4 @@
 
 extern float free_fall_results[];
 
-void free_fall(float drop_height, float friction_obj, float g, float m);
+void free_fall(object_free_fall obj, float drop_height, float friction_obj, float g, float m, bool air, float friction_air, float k, float a);
