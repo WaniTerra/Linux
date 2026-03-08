@@ -12,6 +12,7 @@
 
 Button btn_start;
 Button surface;
+Button panel;
 
 object_free_fall *objs = NULL;
 object_free_fall *obj_move_arr = NULL;
@@ -147,6 +148,7 @@ void setup_free_fall()
     draw_square_button(renderer, btn_start);
     draw_square_button(renderer, menu);
     draw_square_button(renderer, surface);
+    draw_square_button(renderer, panel);
     draw_text(renderer, menu_label);
     draw_text(renderer, start_label);
 }
@@ -157,6 +159,7 @@ void setup_objects()
     menu.height = 700;
     menu.width = 1200;
 
+    panel = (Button){.x = 1350, .y = 200, .height = 500, .width = 190, .color = menu.color};
     surface = (Button){.x = 0, .y = 870, .height = 40, .width = 1200, .color = (SDL_Color){0, 120, 0, 255}};
 
     if (menu_font)
@@ -319,8 +322,7 @@ int screen_free_fall()
         btn_start.color = (SDL_Color){100, 0, 0, 255};
         for (int i = 0; i < objs_num; i++)
         {
-            free_fall((objs + i),(objs + i).y - surface.y, 1, 10, 10, false, 1, 1,1);
-            
+            free_fall((objs + i),(*(objs + i)).y - surface.y, 1, 10, 10, false, 1, 1,1);
         }
         
     }
