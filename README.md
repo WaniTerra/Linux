@@ -1,3 +1,4 @@
+# Linux - 
 Welcome to my core engineering workspace. This repository is not just a collection of assignments; it is the foundation of my professional ambitions and "dreams" in systems engineering, robotics, and low-level software development.
 
 My primary engineering philosophy is focused on understanding and controlling systems directly at the hardware-software interface. Rather than relying solely on high-level abstractions, I build systems from the ground up to ensure maximum efficiency, memory safety, and complete architectural control.
