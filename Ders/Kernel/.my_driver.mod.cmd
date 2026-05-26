@@ -1,1 +1,0 @@
-savedcmd_/home/erens/code/c/linux/Linux/Kernel/my_driver.mod := printf '%s\n'   my_driver.o | awk '!x[$$0]++ { print("/home/erens/code/c/linux/Linux/Kernel/"$$0) }' > /home/erens/code/c/linux/Linux/Kernel/my_driver.mod
