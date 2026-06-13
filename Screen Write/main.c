@@ -10,7 +10,7 @@
 typedef struct {
     float x, y;
     float width, height;
-    float speed;    // ARTIK PİKSEL/SANİYE CİNSİNDEN!
+    float speed;    
     uint32_t color;
 } Player;
 
@@ -20,7 +20,6 @@ SDL_Renderer* renderer;
 SDL_Window* window;
 Player player;
 
-// Zaman takibi için değişkenler
 int last_frame_time = 0;
 
 void clear_screen(uint32_t color) {
@@ -45,18 +44,13 @@ void setup() {
     player.width = 40;
     player.height = 40;
     
-    // DİKKAT: Hızı arttırdık. 
-    // Önceden: 5 piksel/kare idi.
-    // Şimdi: 300 piksel/saniye. (Saniyede ekranın yarısını geçsin)
     player.speed = 300; 
     player.color = 0xFFFF0000;
 }
 
-// Update artık "Delta Time" alıyor!
 void update(float dt) {
     const Uint8* keystate = SDL_GetKeyboardState(NULL);
 
-    // Hareket formülü: Pozisyon += Hız * Zaman
     if (keystate[SDL_SCANCODE_W]) player.y -= player.speed * dt;
     if (keystate[SDL_SCANCODE_S]) player.y += player.speed * dt;
     if (keystate[SDL_SCANCODE_A]) player.x -= player.speed * dt;
@@ -94,25 +88,16 @@ int main(int argc, char* argv[]) {
             if (event.type == SDL_QUIT) is_running = false;
         }
 
-        // --- DELTA TIME HESAPLAMA ---
-        // 1. Önceki kareden beri kaç milisaniye geçti?
-        // SDL_GetTicks(): Program başladığından beri geçen ms.
         int time_to_wait = 16 - (SDL_GetTicks() - last_frame_time);
         
-        // Eğer çok hızlıysak (16ms dolmadıysa), işlemciyi biraz dinlendir.
-        // Bu sayede laptopun pili bitmez ve fanlar uçmaz.
         if (time_to_wait > 0 && time_to_wait <= 16) {
             SDL_Delay(time_to_wait);
         }
         
-        // Güncel zaman farkını hesapla (Saniye cinsinden)
-        // Örn: 16 ms geçtiyse -> delta_time = 0.016 saniye
         float delta_time = (SDL_GetTicks() - last_frame_time) / 1000.0f;
         
-        // last_frame_time'ı güncelle
         last_frame_time = SDL_GetTicks();
 
-        // 2. Güncelle ve Çiz
         update(delta_time);
         render();
     }

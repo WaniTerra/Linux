@@ -57,19 +57,16 @@ Particle particles[MAX_PARTICLES]; // Parçacık Havuzu
 
 int last_frame_time = 0;
 
-// --- YARDIMCI MATEMATİK FONKSİYONLARI ---
 
 void clear_screen(uint32_t color) {
     for (int i = 0; i < WIDTH * HEIGHT; i++) buffer[i] = color;
 }
 
-// DÜZELTME: draw_rect fonksiyonunu YUKARI aldık.
 void draw_rect(int x, int y, int w, int h, uint32_t color) {
     for (int row = 0; row < h; row++) {
         for (int col = 0; col < w; col++) {
             int current_y = y + row;
             int current_x = x + col;
-            // Clipping (Ekran dışına taşmayı engelle)
             if (current_x >= 0 && current_x < WIDTH && current_y >= 0 && current_y < HEIGHT) {
                 buffer[(current_y * WIDTH) + current_x] = color;
             }
@@ -77,32 +74,26 @@ void draw_rect(int x, int y, int w, int h, uint32_t color) {
     }
 }
 
-// --- RADAR ÇİZİM FONKSİYONU ---
 void draw_radar() {
-    // 1. Radar Arka Planı
     for(int y = 0; y < RADAR_HEIGHT; y++) {
         for(int x = 0; x < RADAR_WIDTH; x++) {
             int screen_x = RADAR_X + x;
             int screen_y = RADAR_Y + y;
-            buffer[(screen_y * WIDTH) + screen_x] = 0xFF002200; // Koyu Yeşil
+            buffer[(screen_y * WIDTH) + screen_x] = 0xFF002200; 
         }
     }
 
-    // 2. Ölçekleme
     float scale_x = (float)RADAR_WIDTH / WIDTH;
     float scale_y = (float)RADAR_HEIGHT / HEIGHT;
 
-    // 3. Oyuncu (Mavi)
     int p_radar_x = RADAR_X + (player.x * scale_x);
     int p_radar_y = RADAR_Y + (player.y * scale_y);
     draw_rect(p_radar_x, p_radar_y, 4, 4, 0xFF0000FF); 
 
-    // 4. Hedef (Kırmızı)
     int t_radar_x = RADAR_X + (target.x * scale_x);
     int t_radar_y = RADAR_Y + (target.y * scale_y);
     draw_rect(t_radar_x, t_radar_y, 4, 4, 0xFFFF0000); 
 
-    // 5. Mermiler (Beyaz)
     for (int i = 0; i < MAX_BULLETS; i++) {
         if (bullets[i].is_active) {
             int b_radar_x = RADAR_X + (bullets[i].x * scale_x);
@@ -112,13 +103,11 @@ void draw_radar() {
     }
 }
 
-// AABB ÇARPIŞMA TESTİ
 bool check_collision(float x1, float y1, float w1, float h1, 
                      float x2, float y2, float w2, float h2) {
     return (x1 < x2 + w2 && x1 + w1 > x2 && y1 < y2 + h2 && y1 + h1 > y2);    
 }
 
-// YENİ: Patlama Oluşturma
 void explode(float x, float y, uint32_t color) {
     int particle_count = 20; 
     int spawned = 0;
@@ -127,7 +116,6 @@ void explode(float x, float y, uint32_t color) {
         if (!particles[i].is_active) {
             particles[i].x = x;
             particles[i].y = y;
-            // Rastgele yön (-100 ile +100 arası hız)
             particles[i].vx = ((rand() % 200) - 100) * 2.0f; 
             particles[i].vy = ((rand() % 200) - 100) * 2.0f; 
             particles[i].life = 1.0f; 
@@ -142,7 +130,6 @@ void explode(float x, float y, uint32_t color) {
 void setup() {
     srand(time(NULL)); 
 
-    // Oyuncu
     player.x = WIDTH / 2 - 20;
     player.y = HEIGHT - 60;
     player.width = 40;
@@ -150,7 +137,6 @@ void setup() {
     player.speed = 300; 
     player.color = 0xFFFF0000; 
 
-    // Mermileri sıfırla
     for(int i=0; i<MAX_BULLETS; i++) {
         bullets[i].is_active = false;
         bullets[i].width = 8;
@@ -158,12 +144,10 @@ void setup() {
         bullets[i].speed = 500;
     }
     
-    // Parçacıkları sıfırla
     for(int i=0; i<MAX_PARTICLES; i++) {
         particles[i].is_active = false;
     }
 
-    // Hedef
     target.width = 50;
     target.height = 50;
     target.x = 100;
@@ -196,7 +180,6 @@ void update(float dt) {
     if (player.x < 0) player.x = 0;
     if (player.x + player.width > WIDTH) player.x = WIDTH - player.width;
 
-    // --- MERMİLER ---
     for (int i = 0; i < MAX_BULLETS; i++) {
         if (bullets[i].is_active) {
             bullets[i].y -= bullets[i].speed * dt;
@@ -209,7 +192,6 @@ void update(float dt) {
             if (check_collision(bullets[i].x, bullets[i].y, bullets[i].width, bullets[i].height,
                                 target.x, target.y, target.width, target.height)) {
                 
-                // PATLAMA EFEKTİ!
                 explode(target.x + target.width/2, target.y + target.height/2, target.color);
                 
                 bullets[i].is_active = false; 
@@ -218,12 +200,11 @@ void update(float dt) {
         }
     }
     
-    // --- PARÇACIKLAR ---
     for (int i = 0; i < MAX_PARTICLES; i++) {
         if (particles[i].is_active) {
             particles[i].x += particles[i].vx * dt;
             particles[i].y += particles[i].vy * dt;
-            particles[i].life -= dt * 2.0f; // Zamanla öl
+            particles[i].life -= dt * 2.0f; 
 
             if (particles[i].life <= 0) {
                 particles[i].is_active = false;
@@ -235,28 +216,22 @@ void update(float dt) {
 void render() {
     clear_screen(0xFF101010); 
 
-    // Oyuncu
     draw_rect((int)player.x, (int)player.y, (int)player.width, (int)player.height, player.color);
 
-    // Hedef
     draw_rect((int)target.x, (int)target.y, (int)target.width, (int)target.height, target.color);
 
-    // Mermiler
     for (int i = 0; i < MAX_BULLETS; i++) {
         if (bullets[i].is_active) {
             draw_rect((int)bullets[i].x, (int)bullets[i].y, (int)bullets[i].width, (int)bullets[i].height, 0xFFFFFF00); 
         }
     }
     
-    // Parçacıklar (Patlama)
     for (int i = 0; i < MAX_PARTICLES; i++) {
         if (particles[i].is_active) {
-            // Küçük kareler
             draw_rect((int)particles[i].x, (int)particles[i].y, 3, 3, particles[i].color);
         }
     }
 
-    // Radar en üstte çizilir
     draw_radar();
 
     SDL_UpdateTexture(texture, NULL, buffer, (int)(WIDTH * sizeof(uint32_t)));
