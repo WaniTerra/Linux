@@ -29,10 +29,9 @@ int main()
     memset(&client_addr, 0, sizeof(client_addr));
 
     server_addr.sin_family = AF_INET;
-    server_addr.sin_addr.s_addr = INADDR_ANY; 
+    server_addr.sin_addr.s_addr = INADDR_ANY;
     server_addr.sin_port = htons(PORT);
 
-    
     if (bind(sockfd, (const struct sockaddr *)&server_addr, sizeof(server_addr)) < 0)
     {
         perror("Bind hatası");
@@ -43,7 +42,6 @@ int main()
 
     int n;
     socklen_t len = sizeof(client_addr);
-
 
     User temp_user;
 
@@ -58,7 +56,7 @@ int main()
         printf("--------------------------------\n");
         printf("ID   : %d\n", temp_user.id);
         printf("Nickname : %s\n", temp_user.name);
-        printf("Message        : %s", temp_user.text); 
+        printf("Message        : %s", temp_user.text);
         printf("--------------------------------\n");
 
         char *hello = "Get it!";
@@ -71,7 +69,7 @@ int main()
             break;
         }
 
-        printf("Cevap gönderildi.\n");
+        printf("Answer Sended.\n");
     }
 
     close(sockfd);

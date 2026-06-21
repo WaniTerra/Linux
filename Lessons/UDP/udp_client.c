@@ -29,7 +29,7 @@ int main()
     memset(&server_addr, 0, sizeof(server_addr));
     server_addr.sin_family = AF_INET;
     server_addr.sin_port = htons(PORT);
-    server_addr.sin_addr.s_addr = inet_addr("127.0.0.1"); 
+    server_addr.sin_addr.s_addr = inet_addr("127.0.0.1");
     int n;
     socklen_t len;
 
@@ -55,7 +55,7 @@ int main()
                      (struct sockaddr *)&server_addr, &len);
 
         buffer[n] = '\0';
-        printf("Sunucudan gelen cevap: %s\n", buffer);
+        printf("Server getters: %s\n", buffer);
     }
 
     close(sockfd);
