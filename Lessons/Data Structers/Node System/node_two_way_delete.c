@@ -1,126 +1,125 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-typedef struct node
-{
-    struct node *next_node;
-    struct node *previous_node;
+typedef struct Node {
     int data;
+    struct Node *next;
+    struct Node *prev;
+} Node;
 
-} node;
+// Wrapper struct to make appends O(1) and keep code clean
+typedef struct LinkedList {
+    Node *head;
+    Node *tail;
+} LinkedList;
 
-void add_list(node **head, int data)
-{
-
-    node *temp_node = malloc(sizeof(node));
-
-    temp_node->data = data;
-    temp_node->next_node = NULL;
-    temp_node->previous_node = NULL;
-
-    if (*head == NULL)
-    {
-
-        (*head) = temp_node;
-        return;
+// Helper function to safely allocate memory
+Node* create_node(int data) {
+    Node *new_node = malloc(sizeof(Node));
+    if (new_node == NULL) {
+        fprintf(stderr, "Error: Memory allocation failed.\n");
+        exit(EXIT_FAILURE); 
     }
-
-    node *current = *head;
-
-    while (current->next_node != NULL)
-    {
-        current = current->next_node;
-    }
-
-    current->next_node = temp_node;
-    temp_node->previous_node = current;
-    return;
+    new_node->data = data;
+    new_node->next = NULL;
+    new_node->prev = NULL;
+    return new_node;
 }
 
-void print_list(node *head)
-{
+// Appends to the tail instantly without traversing the whole list
+void append(LinkedList *list, int data) {
+    Node *new_node = create_node(data);
 
-    while (head != NULL)
-    {
-        if (head->previous_node != NULL)
-        {
-            printf("Current %d, Previouse %d \n", head->data, head->previous_node->data);
-        }
-        else
-        {
-            printf("Current %d \n", head->data);
-        }
-
-        head = head->next_node;
+    if (list->head == NULL) {
+        list->head = new_node;
+        list->tail = new_node;
+        return;
     }
+
+    list->tail->next = new_node;
+    new_node->prev = list->tail;
+    list->tail = new_node; // Move tail pointer to the end
 }
 
-void delete_node(node **head, int delete_value)
-{
-    node *current = *head;
+// Cleaned up deletion logic
+void delete_node(LinkedList *list, int value) {
+    Node *current = list->head;
 
-    while (current != NULL && current->data != delete_value)
-    {
-        current = current->next_node;
+    while (current != NULL && current->data != value) {
+        current = current->next;
     }
 
-    if (current == NULL)
-        return;
+    if (current == NULL) return; // Value not found
 
-    if (current == *head)
-    {
-        *head = current->next_node;
-
-        if (*head != NULL)
-        {
-            (*head)->previous_node = NULL;
-        }
-
-        free(current);
-        return;
+    // If updating the head
+    if (current == list->head) {
+        list->head = current->next;
+    } else {
+        current->prev->next = current->next;
     }
 
-    if (current->next_node == NULL)
-    {
-        current->previous_node->next_node = NULL;
-        free(current);
-
-        return;
+    // If updating the tail
+    if (current == list->tail) {
+        list->tail = current->prev;
+    } else {
+        current->next->prev = current->prev;
     }
 
-    current->previous_node->next_node = current->next_node;
-    current->next_node->previous_node = current->previous_node;
     free(current);
-    return;
 }
-int main()
-{
-    node *root = NULL;
+
+void print_list(LinkedList *list) {
+    Node *current = list->head;
+    if (current == NULL) {
+        printf("List is empty.\n");
+        return;
+    }
     
-    add_list(&root, 10);
-    add_list(&root, 20);
-    add_list(&root, 30);
-    add_list(&root, 40);
-    add_list(&root, 50);
-    print_list(root);
+    while (current != NULL) {
+        if (current->prev != NULL) {
+            printf("Current: %d, Previous: %d\n", current->data, current->prev->data);
+        } else {
+            printf("Current: %d (Head)\n", current->data);
+        }
+        current = current->next;
+    }
+    printf("---------------------------\n");
+}
 
-   
-    delete_node(&root, 30);
-    print_list(root);
+// Free all memory to prevent memory leaks
+void free_list(LinkedList *list) {
+    Node *current = list->head;
+    while (current != NULL) {
+        Node *next = current->next;
+        free(current);
+        current = next;
+    }
+    list->head = NULL;
+    list->tail = NULL;
+}
 
-  
-    delete_node(&root, 10);
-    print_list(root);
-
+int main() {
+    // Initialize empty list wrapper
+    LinkedList list = {NULL, NULL};
     
-    delete_node(&root, 50);
-    print_list(root);
+    append(&list, 10);
+    append(&list, 20);
+    append(&list, 30);
+    append(&list, 40);
+    append(&list, 50);
+    print_list(&list);
 
-   
-    delete_node(&root, 99);
-    print_list(root);
+    delete_node(&list, 30); // Middle
+    print_list(&list);
 
-   
+    delete_node(&list, 10); // Head
+    print_list(&list);
+
+    delete_node(&list, 50); // Tail
+    print_list(&list);
+
+    // Clean up cleanly before exiting
+    free_list(&list);
     
     return 0;
 }
